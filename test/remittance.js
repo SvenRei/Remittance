@@ -34,19 +34,19 @@ contract('Remittance', (accounts) => {
   //test the LogDeploy event
   it("test: LogDeploy-event should be emitted", async() => {
     //setting the amount
-    const hash = await contractInstance.hash(one, pw1);
+    const hash = await contractInstance.hash(one, web3.utils.toHex(pw1));
 
     const amount = web3.utils.toWei("1", "Gwei");
-    const latestBlock = await web3.eth.getBlock("latest");
+    const latestBlock = 1;//await web3.eth.getBlock("latest");
     //call the contract from sender
-    const deployObject = await contractInstance.deploy(hash, latestBlock , {from: sender, value: amount});
+    const deployObject = await contractInstance.sendRemittance(hash, latestBlock , {from: sender, value: 2000});
     const { logs } = deployObject;
     const checkEvent = deployObject.logs[0];
     truffleAssert.eventEmitted(deployObject, "LogDeploy");
-    assert.strictEqual(checkEvent.args.from, sender);
-    assert.strictEqual(checkEvent.args.deadline, latestBlock);
-    assert.strictEqual(checkEvent.args.amount, amount);
-    assert.strictEqual(checkEvent.args.hash, hash);
+    assert.strictEqual(checkEvent.args.sender, sender, "sender isn't right");
+    assert.strictEqual(checkEvent.args.deadline, BN(1), "latestBlock is not right");
+    assert.strictEqual(checkEvent.args.amount, BN(2000), "amount is not right");
+    assert.strictEqual(checkEvent.args.hash.toString(), hash.toString(), "hash problem");
     //assert.strictEqual(checkEvent.args.splittetValue.toString(), web3.utils.toWei("0.5", "Gwei").toString());
 
     //plotting
