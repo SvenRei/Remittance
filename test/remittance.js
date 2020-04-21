@@ -47,11 +47,7 @@ contract('Remittance', (accounts) => {
     assert.strictEqual(checkEvent.args.deadline.toString(), maxDate.toString(), "latestBlock is not right");
     assert.strictEqual(checkEvent.args.amount.toString(),amount.toString() , "amount is not right");
     assert.strictEqual(checkEvent.args.hash, hash, "hash problem");
-    //assert.strictEqual(checkEvent.args.splittetValue.toString(), web3.utils.toWei("0.5", "Gwei").toString());
 
-    //plotting
-    //truffleAssert.prettyPrintEmittedEvents(split);
-    //console.log(JSON.stringify(split, null, 4));
    });
 
 
@@ -71,11 +67,7 @@ contract('Remittance', (accounts) => {
      truffleAssert.eventEmitted(withdrawObject, "LogWithdraw");
      assert.strictEqual(checkEvent.args.sender, one, "sender isn't right");
      assert.strictEqual(checkEvent.args.hash, hash, "hash problem");
-     //assert.strictEqual(checkEvent.args.splittetValue.toString(), web3.utils.toWei("0.5", "Gwei").toString());
 
-     //plotting
-     //truffleAssert.prettyPrintEmittedEvents(split);
-     //console.log(JSON.stringify(split, null, 4));
     });
 
     //test the LogDeploy event
@@ -88,8 +80,8 @@ contract('Remittance', (accounts) => {
       //call the contract from sender
       await contractInstance.sendRemittance(hash, maxDate , {from: sender, value: amount});
 
-      //8 * 86400 / 15
-      const 
+      //8 * 86400 / 15 
+
       const cancelObject = await contractInstance.cancelRemittance(hash , {from: sender});
       const { logs } = cancelObject;
       const checkEvent = cancelObject.logs[0];
@@ -99,10 +91,5 @@ contract('Remittance', (accounts) => {
       assert.strictEqual(checkEvent.args.amount.toString(),amount.toString() , "amount is not right");
       assert.strictEqual(checkEvent.args.deadline.toString(), maxDate.toString(), "latestBlock is not right");
 
-            //assert.strictEqual(checkEvent.args.splittetValue.toString(), web3.utils.toWei("0.5", "Gwei").toString());
-
-      //plotting
-      //truffleAssert.prettyPrintEmittedEvents(split);
-      //console.log(JSON.stringify(split, null, 4));
      });
 });
