@@ -18,6 +18,23 @@ contract('Remittance', (accounts) => {
   //set pw1
   const pw1 = "beer1234";
 
+  //timetravel
+  const timeTravel = function (time) {
+    return new Promise((resolve, reject) => {
+      //I think here is the problem somewhere with .sendAsync oder .send
+      web3.currentProvider.send({
+        jsonrpc: "2.0",
+        method: "evm_increaseTime",
+        params: [time], // 86400 is num seconds in day
+        id: new Date().getTime()
+      }, (err, result) => {
+        if(err){ return reject(err) }
+        return resolve(result)
+      });
+    })
+  }
+
+
   //Set up a new contract before each test
   beforeEach("set up conract", async () => {
     //sender deploys the contract
@@ -77,10 +94,13 @@ contract('Remittance', (accounts) => {
 
       const amount = web3.utils.toWei("1", "Gwei");
       const maxDate = 23040;
+
       //call the contract from sender
       await contractInstance.sendRemittance(hash, maxDate , {from: sender, value: amount});
 
-      //8 * 86400 / 15 
+
+
+      await timeTravel(86400 * 8) //8 days later
 
       const cancelObject = await contractInstance.cancelRemittance(hash , {from: sender});
       const { logs } = cancelObject;
