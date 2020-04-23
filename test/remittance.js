@@ -18,10 +18,10 @@ contract('Remittance', (accounts) => {
   //set pw1
   const pw1 = "beer1234";
 
-  //timetravel
+  //timetravel; from: https://medium.com/coinmonks/testing-solidity-with-truffle-and-async-await-396e81c54f93
   const timeTravel = function (time) {
     return new Promise((resolve, reject) => {
-      //I think here is the problem somewhere with .sendAsync oder .send
+      //I think here is the problem somewhere with .sendAsync or .send
       web3.currentProvider.send({
         jsonrpc: "2.0",
         method: "evm_increaseTime",
