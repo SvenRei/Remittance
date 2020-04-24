@@ -116,7 +116,7 @@ contract('Remittance', (accounts) => {
            {from: sender, value: amount}));
      });
 
-  it("test: LogWithdraw-event should be emitted", async() => {
+  it("test: LogWithdraw-event should be emitted | tx fee = gasUsed x gasPrice", async() => {
      //setting the amount
      const hash = await contractInstance.hash(one, web3.utils.toHex(pw1));
 
@@ -125,12 +125,28 @@ contract('Remittance', (accounts) => {
      //call the contract from sender
      await contractInstance.sendRemittance(hash, maxDate , {from: sender, value: amount});
 
+     //getting the balance before withdraw
+     const balanceBefore = await web3.eth.getBalance(one);
+
      const withdrawObject = await contractInstance.withdraw(web3.utils.toHex(pw1) , {from: one});
      const { logs } = withdrawObject;
      const checkEvent = withdrawObject.logs[0];
      truffleAssert.eventEmitted(withdrawObject, "LogWithdraw");
      assert.strictEqual(checkEvent.args.sender, one, "sender isn't right");
      assert.strictEqual(checkEvent.args.hash, hash, "hash problem");
+
+     const tx = await web3.eth.getTransaction(withdrawObject.tx);
+     //getting the receipt for calculating gasCost
+     const receipt = withdrawObject.receipt;
+     //calculating gasCost
+     const gasCost = web3.utils.toBN(tx.gasPrice).mul(web3.utils.toBN(receipt.gasUsed));
+     //calculating expectetbalanceafter
+     const expectedBalanceAfter = web3.utils.toBN(balanceBefore).add(web3.utils.toBN(web3.utils.toWei("1", "Gwei"))).sub(web3.utils.toBN(gasCost));
+     //getting the balance after withdraw
+     const balanceAfter = await web3.eth.getBalance(one);
+     //test if expectedBalanceAfter == balanceAfter
+     assert.strictEqual(expectedBalanceAfter.toString(), balanceAfter.toString(), "Balance of one isn't right");
+
 
     });
 
