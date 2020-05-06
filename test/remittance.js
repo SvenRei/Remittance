@@ -18,6 +18,10 @@ contract('Remittance', (accounts) => {
   // build up a new Splitter contract before each test
   const SECONDS_IN_DAY = 86400
 
+  const { toBN } = web3.utils;
+  const { toWei } = web3.utils;
+  
+
   //Set up a new contract before each test
   beforeEach("set up conract", async () => {
     //sender deploys the contract
@@ -43,7 +47,7 @@ contract('Remittance', (accounts) => {
   it("test: LogRefunds-event should be emitted", async() => {
    const hash = await contractInstance.hash(one, web3.utils.toHex(pw1));
 
-   const amount = web3.utils.toWei("1", "Gwei");
+   const amount = toWei("1", "Gwei");
    const deadline = 23040;
    //call the contract from sender
    await contractInstance.sendRemittance(hash, deadline , {from: sender, value: amount});
@@ -63,7 +67,8 @@ contract('Remittance', (accounts) => {
     //setting the amount
     const hash = await contractInstance.hash(one, web3.utils.toHex(pw1));
 
-    const amount = web3.utils.toWei("1", "Gwei");
+    //const amount = web3.utils.toWei("1", "Gwei");
+    const amount = toWei("1", "Gwei");
     const deadline = 23040;
     //call the contract from sender
     const remittanceObject = await contractInstance.sendRemittance(hash, deadline , {from: sender, value: amount});
@@ -85,7 +90,7 @@ contract('Remittance', (accounts) => {
      //setting the amount
      const hash = await contractInstance.hash(one, web3.utils.toHex(pw1));
 
-     const amount = web3.utils.toWei("1", "Gwei");
+     const amount = toWei("1", "Gwei");
      const deadline = 23040;
      //call the contract from sender
      const remittanceObject = await contractInstance.sendRemittance(hash, deadline , {from: sender, value: amount});
@@ -98,7 +103,7 @@ contract('Remittance', (accounts) => {
      //setting the amount
      const hash1 = await contractInstance.hash(two, web3.utils.toHex(pw2));
 
-     const amount1 = web3.utils.toWei("2", "Gwei");
+     const amount1 = toWei("2", "Gwei");
      const deadline1 = 24040;
      //call the contract from one
      const remittanceObject1 = await contractInstance.sendRemittance(hash1, deadline1 , {from: one, value: amount1});
@@ -112,7 +117,7 @@ contract('Remittance', (accounts) => {
   it("test: Using one hash two times should not work", async() => {
       //setting the amount
       const hash = await contractInstance.hash(one, web3.utils.toHex(pw1));
-      const amount = web3.utils.toWei("1", "Gwei");
+      const amount = toWei("1", "Gwei");
       const deadline = 23040;
       //call the contract from sender
       deployObject = await contractInstance.sendRemittance(hash, deadline , {from: sender, value: amount});
@@ -125,7 +130,7 @@ contract('Remittance', (accounts) => {
      //setting the amount
      const hash = await contractInstance.hash(one, web3.utils.toHex(pw1));
 
-     const amount = web3.utils.toWei("1", "Gwei");
+     const amount = toWei("1", "Gwei");
      const deadline = 23040;
      //call the contract from sender
      await contractInstance.sendRemittance(hash, deadline , {from: sender, value: amount});
@@ -144,9 +149,9 @@ contract('Remittance', (accounts) => {
      //getting the receipt for calculating gasCost
      const receipt = withdrawObject.receipt;
      //calculating gasCost
-     const gasCost = web3.utils.toBN(tx.gasPrice).mul(web3.utils.toBN(receipt.gasUsed));
+     const gasCost = toBN(tx.gasPrice).mul(toBN(receipt.gasUsed));
      //calculating expectetbalanceafter
-     const expectedBalanceAfter = web3.utils.toBN(balanceBefore).add(web3.utils.toBN(web3.utils.toWei("1", "Gwei"))).sub(web3.utils.toBN(gasCost));
+     const expectedBalanceAfter = toBN(balanceBefore).add(toBN(toWei("1", "Gwei"))).sub(toBN(gasCost));
      //getting the balance after withdraw
      const balanceAfter = await web3.eth.getBalance(one);
      //test if expectedBalanceAfter == balanceAfter
@@ -158,7 +163,7 @@ contract('Remittance', (accounts) => {
   it("test: cancelRemittance should not be possible before deadline", async() => {
       //setting the amount
       const hash = await contractInstance.hash(one, web3.utils.toHex(pw1));
-      const amount = web3.utils.toWei("1", "Gwei");
+      const amount = toWei("1", "Gwei");
       const deadline = 23040;
       //call the contract from sender
       await contractInstance.sendRemittance(hash, deadline , {from: sender, value: amount});
@@ -170,7 +175,7 @@ contract('Remittance', (accounts) => {
   it("test: LogCancel-event should be emitted", async() => {
       //setting the amount
       const hash = await contractInstance.hash(one, web3.utils.toHex(pw1));
-      const amount = web3.utils.toWei("1", "Gwei");
+      const amount = toWei("1", "Gwei");
       const deadline = 23040;
       //call the contract from sender
       await contractInstance.sendRemittance(hash, deadline , {from: sender, value: amount});
