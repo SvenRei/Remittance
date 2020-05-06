@@ -77,7 +77,7 @@ contract Remittance is Killable{
     Remittance storage r = remittances[hash];
 
     require(r.sender == msg.sender, "wrong msg.sender");
-    require(now >= r.deadline, "the deadline has not yet expiredd");
+    require(r.deadline <= now, "the deadline has not yet expired");
     require(r.amount > 0,"nothing to withdraw");
 
     emit LogCancel(msg.sender, hash, r.amount, r.deadline);
