@@ -11,12 +11,12 @@ contract Remittance is Killable{
     using SafeMath for uint;
 
     //max waiting time || (7 [days] * 86400 [seconds])/15[seconds]) | 15 = average block time | https://etherscan.io/chart/blocktime; it's something from 11-19 [seconds].. so here it is 15 [seconds]..
-    uint constant maxDeadline = 7 * 86400 / 15; //this is the max period! in seconds
+    uint constant maxRemittancePeriod = 7 * 86400 / 15; //this is the max period! in seconds
 
     //struct for setting the data
     struct Remittance {
       uint amount;
-      uint maxDate;
+      uint deadline;
       address sender;
     }
     //Set up events
@@ -37,35 +37,35 @@ contract Remittance is Killable{
   }
 
   //function to set up the riddle with the hash and the date
-  function sendRemittance(bytes32 hash, uint maxDate) public payable {
+  function sendRemittance(bytes32 hash, uint remittancePeriod) public payable {
     //amount from msg.sender
     uint amount = msg.value;
 
     require(amount > 0, "greater than zero");
-    require(maxDate <= maxDeadline, "Deadline!");
+    require(remittancePeriod <= maxRemittancePeriod, "Deadline!");
     //using the storage // https://medium.com/cryptologic/memory-and-storage-in-solidity-4052c788ca86
     Remittance storage r = remittances[hash];
     //checking that the pw or acc isn't already set
     require(r.sender == address(0), "wrong pw or acc");
 
-    uint deadline = now.add(maxDate); //for Setting the right period!
+    uint deadline = now.add(remittancePeriod); //for Setting the right period!
 
     r.sender = msg.sender;
     r.amount = amount;
-    r.maxDate = deadline;
+    r.deadline = deadline;
     //event
-    emit LogDeploy(msg.sender, maxDate, msg.value, hash);
+    emit LogDeploy(msg.sender, deadline, msg.value, hash);
   }
 
   //withdraw the funds like in the splitter project but with .call!
   function withdraw(bytes32 password) public {
     bytes32 hash = hash(msg.sender, password);
     Remittance storage r = remittances[hash];
-    require(now < r.maxDate, "he got one week");
+    require(now <= r.deadline, "he got one week");
     require(r.amount > 0,"nothing to withdraw");
     uint withdrawAmount = r.amount;
     r.amount = 0;
-    r.maxDate = 0;
+    r.deadline = 0;
     //event
     emit LogWithdraw(msg.sender, hash);
     (bool success, ) = msg.sender.call.value(withdrawAmount)("");
@@ -73,14 +73,17 @@ contract Remittance is Killable{
   }
 
   function cancelRemittance(bytes32 hash) public payable whenAlive {
-    require(remittances[hash].sender == msg.sender, "Caller did not sendRemittance");
-    require(remittances[hash].maxDate <= now, "has not yet expired");
-    require(remittances[hash].amount > 0, "Nothing left");
+
     Remittance storage r = remittances[hash];
-    emit LogCancel(msg.sender, hash, r.amount, r.maxDate);
+
+    require(r.sender == msg.sender, "wrong msg.sender");
+    require(now >= r.deadline, "the deadline has not yet expiredd");
+    require(r.amount > 0,"nothing to withdraw");
+
+    emit LogCancel(msg.sender, hash, r.amount, r.deadline);
     uint cancelAmount = r.amount;
-    remittances[hash].amount = 0;
-    remittances[hash].maxDate = 0;
+    r.amount = 0;
+    r.deadline = 0;
 
     (bool success, ) = msg.sender.call.value(cancelAmount)("");
        require(success, "Transfer failed");
