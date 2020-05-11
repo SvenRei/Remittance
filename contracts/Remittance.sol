@@ -11,7 +11,8 @@ contract Remittance is Killable{
     using SafeMath for uint;
 
     //max waiting time || (7 [days] * 86400 [seconds])/15[seconds]) | 15 = average block time | https://etherscan.io/chart/blocktime; it's something from 11-19 [seconds].. so here it is 15 [seconds]..
-    uint constant maxRemittancePeriod = 7 * 86400 / 15; //this is the max period! in seconds
+    //https://solidity.readthedocs.io/en/v0.4.24/units-and-global-variables.html#time-units
+    uint constant maxRemittancePeriod = 7 * 1 days / 15; //this is the max period! in seconds
 
     //struct for setting the data
     struct Remittance {
@@ -77,11 +78,12 @@ contract Remittance is Killable{
     Remittance storage r = remittances[hash];
 
     require(r.sender == msg.sender, "wrong msg.sender");
-    require(r.deadline <= now, "the deadline has not yet expired");
+    require(r.deadline < now, "the deadline has not yet expired");
     require(r.amount > 0,"nothing to withdraw");
 
-    emit LogCancel(msg.sender, hash, r.amount, r.deadline);
     uint cancelAmount = r.amount;
+
+    emit LogCancel(msg.sender, hash, cancelAmount, r.deadline);
     r.amount = 0;
     r.deadline = 0;
 
