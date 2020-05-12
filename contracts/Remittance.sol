@@ -62,28 +62,26 @@ contract Remittance is Killable{
   function withdraw(bytes32 password) public {
     bytes32 hash = hash(msg.sender, password);
     Remittance storage r = remittances[hash];
-    require(now <= r.deadline, "he got one week");
-    require(r.amount > 0,"nothing to withdraw");
     uint withdrawAmount = r.amount;
+    require(now <= r.deadline, "he got one week");
+    require(withdrawAmount > 0,"nothing to withdraw");
     r.amount = 0;
     r.deadline = 0;
     //event
     emit LogWithdraw(msg.sender, hash);
     (bool success, ) = msg.sender.call.value(withdrawAmount)("");
-       require(success, "Transfer failer");
+       require(success, "Transfer failed");
   }
 
   function cancelRemittance(bytes32 hash) public payable whenAlive {
 
     Remittance storage r = remittances[hash];
-
-    require(r.sender == msg.sender, "wrong msg.sender");
-    require(r.deadline < now, "the deadline has not yet expired");
-    require(r.amount > 0,"nothing to withdraw");
-
     uint cancelAmount = r.amount;
-
-    emit LogCancel(msg.sender, hash, cancelAmount, r.deadline);
+    uint deadline = r.deadline;
+    require(r.sender == msg.sender, "wrong msg.sender");
+    require(deadline < now, "the deadline has not yet expired");
+    require(cancelAmount > 0,"nothing to withdraw");
+    emit LogCancel(msg.sender, hash, cancelAmount, deadline);
     r.amount = 0;
     r.deadline = 0;
 
