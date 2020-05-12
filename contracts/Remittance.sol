@@ -34,6 +34,7 @@ contract Remittance is Killable{
   //setting up a function to hash inside the contract, because it is not clear which hash function the participants use
   //setting up the secret with the address of the address of the exchange shop (one password less), the password from bob and the address of this contract(for using it only once)
   function hash(address exchange, bytes32 password) public view returns(bytes32 hash){
+    require(exchange != address(0x0), "the addresses can't be 0x0");
     hash = keccak256(abi.encodePacked(exchange, password, address(this)));
   }
 
