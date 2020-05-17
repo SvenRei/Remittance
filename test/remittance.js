@@ -20,7 +20,7 @@ contract('Remittance', (accounts) => {
 
   const { toBN } = web3.utils;
   const { toWei } = web3.utils;
-  
+
 
   //Set up a new contract before each test
   beforeEach("set up conract", async () => {
@@ -46,21 +46,35 @@ contract('Remittance', (accounts) => {
 
   it("test: LogRefunds-event should be emitted", async() => {
    const hash = await contractInstance.hash(one, web3.utils.toHex(pw1));
-
    const amount = toWei("1", "Gwei");
    const deadline = 23040;
    //call the contract from sender
    await contractInstance.sendRemittance(hash, deadline , {from: sender, value: amount});
-
    await contractInstance.pause({ from: sender });
    await contractInstance.kill({ from: sender });
+
+   //getting the balance before safeFunds
+   const balanceBefore = await web3.eth.getBalance(sender);
    const refundObj = await contractInstance.safeFunds({ from: sender });
+
+   const tx = await web3.eth.getTransaction(refundObj.tx);
+   //getting the receipt for calculating gasCost
+   const receipt = refundObj.receipt;
+   //calculating gasCost
+   const gasCost = toBN(tx.gasPrice).mul(toBN(receipt.gasUsed));
+   //calculating expectetbalanceafter
+   const expectedBalanceAfter = toBN(balanceBefore).add(toBN(toWei("1", "Gwei"))).sub(toBN(gasCost));
+   //getting the balance after refund
+   const balanceAfter = await web3.eth.getBalance(sender);
 
    const { logs } = refundObj;
    const refundEvent = refundObj.logs[0];
    truffleAssert.eventEmitted(refundObj, "LogRefunds");
-   assert.strictEqual(refundEvent.args.sender, sender, "not the owner");
-   assert.strictEqual(refundEvent.args.refunds.toString(), amount.toString(), "not the right refund");
+   assert.strictEqual(refundEvent.args.sender, sender, "Not the right Owner");
+   assert.strictEqual(refundEvent.args.refunds.toString(), amount.toString(), "Not the right refund");
+   //test if expectedBalanceAfter == balanceAfter
+   assert.strictEqual(expectedBalanceAfter.toString(), balanceAfter.toString(), "Balance of the sender isn't right");
+
  });
 
   it("test: LogDeploy-event should be emitted", async() => {
